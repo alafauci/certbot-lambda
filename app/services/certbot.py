@@ -2,7 +2,9 @@ from pathlib import Path
 from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
 from certbot import main
-
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import BestAvailableEncryption
+import base64
 
 @dataclass
 class CertFile:
@@ -79,6 +81,38 @@ def obtain_certbot_certs(
     return read_certs_from_path(certbot_dir.joinpath("live"))
 
 
+# def read_certs_from_path(path: Path) -> list[Cert]:
+#     certs: list[Cert] = []
+#     cert_files = ["fullchain.pem", "chain.pem", "privkey.pem", "cert.pem"]
+#
+#     domains = [v.name for v in path.iterdir() if v.is_dir()]
+#
+#     for domain in domains:
+#         domain_path = path.joinpath(domain)
+#
+#         cert = Cert(domain=domain, files=[])
+#
+#         for cert_file in cert_files:
+#             cert_path = domain_path.joinpath(cert_file)
+#
+#             if not cert_path.is_file():
+#                 raise RuntimeError(
+#                     f"Failed to generate cert for {domain}: {cert_path} not found"
+#                 )
+#
+#             content = cert_path.read_text()
+#
+#             if len(content) < 50:
+#                 raise RuntimeError(
+#                     f"Failed to generate cert for {domain}: {cert_path} cert is incorrect"
+#                 )
+#
+#             cert.files.append(CertFile(name=cert_path.name, content=content))
+#
+#         certs.append(cert)
+#
+#     return certs
+
 def read_certs_from_path(path: Path) -> list[Cert]:
     certs: list[Cert] = []
     cert_files = ["fullchain.pem", "chain.pem", "privkey.pem", "cert.pem"]
@@ -89,6 +123,8 @@ def read_certs_from_path(path: Path) -> list[Cert]:
         domain_path = path.joinpath(domain)
 
         cert = Cert(domain=domain, files=[])
+        private_key = None
+        certificate = None
 
         for cert_file in cert_files:
             cert_path = domain_path.joinpath(cert_file)
@@ -105,7 +141,27 @@ def read_certs_from_path(path: Path) -> list[Cert]:
                     f"Failed to generate cert for {domain}: {cert_path} cert is incorrect"
                 )
 
+            if 'privkey.pem' in cert_file:
+                private_key = serialization.load_pem_private_key(
+                    content.encode(),
+                    password=None,
+                )
+            elif 'cert.pem' in cert_file or 'fullchain.pem' in cert_file:
+                certificate = x509.load_pem_x509_certificate(content.encode())
+
             cert.files.append(CertFile(name=cert_path.name, content=content))
+
+        if private_key and certificate:
+            p12 = pkcs12.serialize_key_and_certificates(
+                name=domain.encode(),
+                key=private_key,
+                cert=certificate,
+                cas=None,
+                encryption_algorithm=BestAvailableEncryption(b"password")  # Use a password here
+            )
+
+            p12_base64 = base64.b64encode(p12).decode('utf-8')
+            cert.files.append(CertFile(name=f"{domain}.p12", content=p12_base64))
 
         certs.append(cert)
 
