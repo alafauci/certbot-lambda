@@ -26,8 +26,8 @@ jobs:
 #    - name: Run tests
 #      run: poetry run task test
 
-#    - name: Run build tests
-#      run: poetry run task test-build
+    - name: Run build tests
+      run: poetry run task test-build
 
     - uses: actions/upload-artifact@v3
       with:
@@ -39,4 +39,6 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        git config user.name github-actions
+        git config user.email actions@github.com
         poetry run task release
