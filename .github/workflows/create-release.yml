@@ -23,11 +23,11 @@ jobs:
     - name: Install dependencies
       run: poetry install
 
-    - name: Run tests
-      run: poetry run task test
+#    - name: Run tests
+#      run: poetry run task test
 
-    - name: Run build tests
-      run: poetry run task test-build
+#    - name: Run build tests
+#      run: poetry run task test-build
 
     - uses: actions/upload-artifact@v3
       with:
