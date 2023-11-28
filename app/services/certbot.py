@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 from certbot import main
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-
+from cryptography.hazmat.primitives.serialization import pkcs12
 import base64
 from cryptography import x509
 
