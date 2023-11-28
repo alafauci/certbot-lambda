@@ -20,21 +20,41 @@ from .certbot import Cert
 #             data={f.name: f.content for f in cert.files},
 #             description=description,
 #         )
+
 def upload_certs_as_secrets(
     certs: list[Cert], name: str, description: str = ""
 ) -> None:
     for cert in certs:
         formatted_name = name.format(domain=slugify(cert.domain))
 
-        # Assuming cert.certificate and cert.private_key are in PEM format
-        cert_obj = x509.load_pem_x509_certificate(cert.certificate.encode())
-        private_key_obj = serialization.load_pem_private_key(cert.private_key.encode(), password=None)
+        # Initialize variables for certificate components
+        certificate_pem = None
+        private_key_pem = None
+        chain_pem = None
 
-        # Assuming cert.chain is optional and in PEM format if present
+        # Extract certificate, private key, and chain from CertFile objects
+        for cert_file in cert.files:
+            if cert_file.name == 'certificate':  # Adjust these conditions based on your file naming
+                certificate_pem = cert_file.content
+            elif cert_file.name == 'private_key':
+                private_key_pem = cert_file.content
+            elif cert_file.name == 'chain':
+                chain_pem = cert_file.content
+
+        # Ensure certificate and private key are present
+        if not (certificate_pem and private_key_pem):
+            raise ValueError("Certificate or private key not found in Cert files")
+
+        # Load the certificate and private key
+        cert_obj = x509.load_pem_x509_certificate(certificate_pem.encode())
+        private_key_obj = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
+
+        # Load the certificate chain if present
         chain = None
-        if hasattr(cert, 'chain') and cert.chain:
-            chain = [x509.load_pem_x509_certificate(cert.chain.encode())]
+        if chain_pem:
+            chain = [x509.load_pem_x509_certificate(chain_pem.encode())]
 
+        # Create the .p12 file
         p12 = pkcs12.serialize_key_and_certificates(
             name=formatted_name.encode(),
             key=private_key_obj,
@@ -54,6 +74,7 @@ def upload_certs_as_secrets(
             data=data,
             description=description,
         )
+
 
 def create_or_update_secret(
     name: str,
