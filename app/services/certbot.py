@@ -5,6 +5,8 @@ from certbot import main
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import BestAvailableEncryption
 import base64
+from cryptography import x509
+
 
 @dataclass
 class CertFile:
