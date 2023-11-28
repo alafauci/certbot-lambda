@@ -23,15 +23,15 @@ class Cert:
 
 
 def obtain_certbot_certs(
-    emails: list[str],
-    domains: list[str],
-    dns_plugin: str,
-    certbot_dir: Path,
-    certbot_server: str,
-    preferred_chain: str = None,
-    extra_args: list[str] = None,
-    credentials: str = None,
-    propagation_seconds: int = None,
+        emails: list[str],
+        domains: list[str],
+        dns_plugin: str,
+        certbot_dir: Path,
+        certbot_server: str,
+        preferred_chain: str = None,
+        extra_args: list[str] = None,
+        credentials: str = None,
+        propagation_seconds: int = None,
 ) -> list[Cert]:
     with NamedTemporaryFile(mode="w") as tmp:
         if credentials:
@@ -76,7 +76,7 @@ def obtain_certbot_certs(
                 if propagation_seconds
                 else []
             ),
-            ## Add custom arguments
+            # Add custom arguments
             *(extra_args or []),
         ]
 
@@ -84,38 +84,6 @@ def obtain_certbot_certs(
 
     return read_certs_from_path(certbot_dir.joinpath("live"))
 
-
-# def read_certs_from_path(path: Path) -> list[Cert]:
-#     certs: list[Cert] = []
-#     cert_files = ["fullchain.pem", "chain.pem", "privkey.pem", "cert.pem"]
-#
-#     domains = [v.name for v in path.iterdir() if v.is_dir()]
-#
-#     for domain in domains:
-#         domain_path = path.joinpath(domain)
-#
-#         cert = Cert(domain=domain, files=[])
-#
-#         for cert_file in cert_files:
-#             cert_path = domain_path.joinpath(cert_file)
-#
-#             if not cert_path.is_file():
-#                 raise RuntimeError(
-#                     f"Failed to generate cert for {domain}: {cert_path} not found"
-#                 )
-#
-#             content = cert_path.read_text()
-#
-#             if len(content) < 50:
-#                 raise RuntimeError(
-#                     f"Failed to generate cert for {domain}: {cert_path} cert is incorrect"
-#                 )
-#
-#             cert.files.append(CertFile(name=cert_path.name, content=content))
-#
-#         certs.append(cert)
-#
-#     return certs
 
 def read_certs_from_path(path: Path) -> list[Cert]:
     certs: list[Cert] = []
