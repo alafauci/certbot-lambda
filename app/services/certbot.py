@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
 from certbot import main
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.serialization import BestAvailableEncryption
+from cryptography.hazmat.primitives import serialization
+
 import base64
 from cryptography import x509
 
