@@ -5,6 +5,7 @@ from certbot import main
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
+from cryptography.hazmat.primitives.serialization import NoEncryption
 import base64
 from cryptography import x509
 
@@ -160,7 +161,7 @@ def read_certs_from_path(path: Path) -> list[Cert]:
                 key=private_key,
                 cert=certificate,
                 cas=None,
-                encryption_algorithm=BestAvailableEncryption(b"password")  # Use a password here
+                encryption_algorithm=NoEncryption()
             )
 
             p12_base64 = base64.b64encode(p12).decode('utf-8')
