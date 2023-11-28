@@ -165,7 +165,8 @@ def read_certs_from_path(path: Path) -> list[Cert]:
             )
 
             p12_base64 = base64.b64encode(p12).decode('utf-8')
-            cert.files.append(CertFile(name=f"{domain}.p12", content=p12_base64))
+            # cert.files.append(CertFile(name=f"{domain}.p12", content=p12_base64))
+            cert.files.append(CertFile(name="p12", content=p12_base64))
 
         certs.append(cert)
 
